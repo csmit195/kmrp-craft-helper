@@ -1,0 +1,82 @@
+<html>
+<head>
+    <title>KMRP Crafter</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>KMRP Crafter</h1>
+        <div class="search-container">
+            <input 
+                v-model="searchQuery" 
+                @input="updateSuggestions" 
+                @keydown.enter="handleEnterKey"
+                placeholder="Search for an item to craft (e.g. '4 G18C' or '4x G18C')"
+                ref="searchInput"
+            >
+            <div class="suggestions" v-if="showSuggestions">
+                <div v-for="suggestion in filteredSuggestions" :key="suggestion" class="suggestion" @click="selectSuggestion(suggestion)">
+                    {{ suggestion }}
+                </div>
+            </div>
+        </div>
+        <div v-if="loading" class="loading">Loading recipes...</div>
+        <div v-else-if="result" class="result">
+            <h2>Crafting Recipe for {{ quantity }}x {{ result.name }}</h2>
+            <div class="column">
+                <h3>Ingredients:</h3>
+                <ul>
+                    <li v-for="(item, index) in displayIngredients" :key="index">
+                        <span 
+                            class="quantity" 
+                            :contenteditable="isCrafted(item.item)"
+                            :style="{ backgroundColor: isCrafted(item.item) ? '#03dac6' : '#bb86fc' }"
+                            @input="handleIngredientInput($event, index)"
+                            @blur="updateIngredientQuantity(index, $event)"
+                            @keydown.enter.prevent="handleEnterKey($event, index)"
+                        >{{ item.quantity }}</span>
+                        <span class="item-name" :class="{ crafted: isCrafted(item.item) }">
+                            {{ item.item }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            <div class="column">
+                <h3>Total Raw Materials:</h3>
+                <ul>
+                    <li v-for="(quantity, item) in totalMaterials" :key="item">
+                        <span class="quantity">{{ quantity }}</span>
+                        <span class="item-name">{{ item }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div v-if="craftingSteps.length > 0" class="crafting-steps">
+                <h3>Crafting Steps:</h3>
+                <ol>
+                    <li v-for="(step, index) in craftingSteps" :key="index" @click="toggleStepDetails(index)">
+                        <div class="step-content">
+                            {{ index + 1 }}. Craft {{ step.quantity }}x {{ step.item }}
+                            <span class="tooltip-icon" title="View ingredients">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </div>
+                        <div :class="['step-details', { active: step.showDetails }]">
+                            <ul>
+                                <li v-for="(ingredient, i) in getIngredients(step.item)" :key="i">
+                                    {{ ingredient.quantity * step.quantity }}x {{ ingredient.item }}
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <p v-if="error" class="error">{{ error }}</p>
+        <div class="byline">by csmit195</div>
+    </div>
+    <script src="app.js"></script>
+    <!-- Honestly, first time Vue, it's kinda nice and simple -->
+</body></html>
